@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#120c38">
+<title>Lantern Sky · Fugio</title>
+<meta name="description" content="Lantern Sky: fly a paper glider with Foxino and his friends through a glowing lantern festival at night. Fly through the right word to light the sky.">
+<link rel="icon" href="/img/app-lanternsky.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+/* Lantern Sky: a portrait phone game at night. Soft glowing glass panels with warm lantern-gold edges, a rounded
+   font (Baloo 2), glowing buttons. On a computer it plays in a phone-shaped column. */
+:root{--t:'Baloo 2',system-ui,sans-serif;--b:'Nunito',system-ui,sans-serif;--gold:#ffd27a;--glow:0 0 18px rgba(255,180,90,.45);--glass:linear-gradient(rgba(44,30,110,.72),rgba(20,14,60,.78))}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;color:#fff;font-family:var(--b);font-weight:800;overscroll-behavior:none}
+body{background:radial-gradient(circle at 50% 20%,#3a2a7a,#0a0820 75%)}
+[hidden]{display:none!important}
+#stage{touch-action:none;position:relative;height:100%;margin:0 auto;overflow:hidden;background:#120c38;box-shadow:0 0 60px rgba(0,0,0,.6)}
+#cv{position:absolute;left:0;top:0;display:block}
+section{position:absolute;inset:0;pointer-events:none}
+section button,.modal{pointer-events:auto}
+button{font-family:var(--t);cursor:pointer;color:#fff;border:0}
+.glass{background:var(--glass);border:2px solid rgba(255,210,140,.55);border-radius:20px;box-shadow:var(--glow),inset 0 1px 0 rgba(255,255,255,.18);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.go{font:800 30px/1 var(--t);padding:14px 52px 12px;border-radius:999px;background:linear-gradient(#ffd27a,#ff9a4a 55%,#ff6a5a);box-shadow:0 0 26px rgba(255,150,80,.75),inset 0 2px 0 rgba(255,255,255,.6),0 5px 0 #8a2a3a;text-shadow:0 2px 0 rgba(140,40,30,.55)}
+.go:active{transform:translateY(4px);box-shadow:0 0 18px rgba(255,150,80,.6),inset 0 2px 0 rgba(255,255,255,.6),0 1px 0 #8a2a3a}
+.go.off{background:linear-gradient(#a8a4c8,#6e6a98);box-shadow:inset 0 2px 0 rgba(255,255,255,.4),0 5px 0 #2a2650}
+.soft{font:800 18px var(--t);padding:9px 22px 7px;border-radius:999px;background:rgba(255,255,255,.12);border:2px solid rgba(255,210,140,.5)}
+.star{color:var(--gold);text-shadow:0 0 8px rgba(255,200,90,.9)}
+.star.off{color:rgba(255,255,255,.22);text-shadow:none}
+
+/* menu */
+#title{position:absolute;top:calc(14px + env(safe-area-inset-top));left:0;right:0;text-align:center;font:800 46px/.9 var(--t);color:#fff3c8;letter-spacing:.02em;
+  text-shadow:0 0 10px rgba(255,200,110,.95),0 0 28px rgba(255,140,80,.8),0 3px 0 #8a3a4a}
+#title small{display:block;font:800 14px var(--b);letter-spacing:.32em;color:var(--gold);text-shadow:0 0 8px rgba(255,180,90,.8);margin-top:6px}
+#best{position:absolute;top:calc(104px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);font:800 15px var(--t);padding:4px 12px 2px;border-radius:999px}
+.nights{position:absolute;left:10px;right:10px;bottom:calc(268px + env(safe-area-inset-bottom));display:flex;gap:7px}
+.night{flex:1;min-width:0;padding:8px 6px 7px;text-align:center;border-radius:16px;font-family:var(--b)}
+.night b{display:block;font:800 15px/1.05 var(--t)}
+.night i{display:block;font-style:normal;font-size:15px;margin-top:3px;letter-spacing:.08em}
+.night.on{border-color:var(--gold);box-shadow:0 0 22px rgba(255,190,90,.75),inset 0 0 0 1px rgba(255,230,170,.6);background:linear-gradient(rgba(120,70,160,.8),rgba(60,30,110,.85))}
+.night.locked{opacity:.55}
+#nightSub{position:absolute;left:14px;right:14px;bottom:calc(240px + env(safe-area-inset-bottom));margin:0;text-align:center;font-size:13px;color:#e8dcff;text-shadow:0 1px 4px #000}
+#qbtn{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(186px + env(safe-area-inset-bottom));width:min(340px,calc(100% - 24px));display:flex;align-items:center;gap:10px;text-align:left;padding:7px 12px 7px 8px;font-family:var(--b)}
+#qbtn .lv{flex:none;font:800 15px var(--t);color:#1a1040;background:var(--c,#7fe0a0);padding:5px 8px 3px;border-radius:10px}
+#qbtn .t{flex:1;min-width:0}
+#qbtn small{display:block;font-size:10px;letter-spacing:.16em;color:var(--gold)}
+#qbtn b{display:block;font-size:15px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#qbtn .arr{flex:none;font:800 24px var(--t);color:var(--gold)}
+.crew{position:absolute;left:0;right:0;bottom:calc(104px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:6px;padding:0 8px}
+.mate{flex:0 1 56px;min-width:0;padding:3px 2px 4px;border-radius:16px;font:800 10px var(--b);text-align:center}
+.mate img{width:100%;max-width:50px;aspect-ratio:1;display:block;margin:0 auto;border-radius:12px}
+.mate.on{border-color:var(--gold);box-shadow:0 0 18px rgba(255,190,90,.85);transform:translateY(-4px)}
+#play{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);min-width:220px}
+#play:active{transform:translate(-50%,4px)}
+
+/* flying */
+#hearts{position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;font-size:26px;letter-spacing:2px;color:#ff6a8a;text-shadow:0 0 10px rgba(255,90,130,.9)}
+#hearts .off{color:rgba(255,255,255,.18);text-shadow:none}
+#score{position:absolute;top:calc(14px + env(safe-area-inset-top));right:58px;font:800 22px var(--t);color:#fff3c8;text-shadow:0 0 10px rgba(255,190,90,.9)}
+#pauseBtn{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;width:40px;height:40px;border-radius:50%;font-size:15px;pointer-events:auto}
+#prog{position:absolute;top:calc(54px + env(safe-area-inset-top));left:14px;right:14px;height:8px;border-radius:5px;background:rgba(255,255,255,.14)}
+#prog i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:linear-gradient(90deg,#ff9a4a,#ffd27a);box-shadow:0 0 10px rgba(255,190,90,.9)}
+#prog b{position:absolute;top:-9px;width:18px;height:24px;margin-left:-9px;border-radius:7px 7px 9px 9px;background:radial-gradient(circle at 50% 40%,#fff3c8,#ff9a4a);box-shadow:0 0 12px rgba(255,170,80,1)}
+#qcard{position:absolute;top:calc(74px + env(safe-area-inset-top));left:12px;right:12px;padding:8px 14px 11px;text-align:center;transition:transform .3s,opacity .3s}
+#qcard.away{transform:translateY(-20px);opacity:0}
+#qcard .k{font:800 14px var(--t);color:var(--gold);letter-spacing:.03em}
+#qcard .s{font:900 21px/1.3 var(--b)}
+#qcard .s i{font-style:normal;font-size:.78em;opacity:.75}
+#qcard .w{display:flex;justify-content:center;gap:8px;margin-top:7px}
+#qcard .w span{flex:1;max-width:120px;font:800 17px/1 var(--t);padding:7px 6px 5px;border-radius:999px;border:2px solid;transition:opacity .3s,transform .3s}
+#qcard .w .c0{border-color:#ff7ab0;color:#ffd0e4;box-shadow:0 0 10px rgba(255,122,176,.6)}
+#qcard .w .c1{border-color:#ffd27a;color:#fff0c8;box-shadow:0 0 10px rgba(255,210,122,.6)}
+#qcard .w .c2{border-color:#7ad8ff;color:#d0f2ff;box-shadow:0 0 10px rgba(122,216,255,.6)}
+#qcard .w .ok{border-color:#5aff8a;color:#9dffb0;background:rgba(90,255,138,.15);transform:scale(1.08)}
+#qcard .w .dim{opacity:.3}
+.gap{display:inline-block;min-width:58px;border-bottom:3px solid var(--gold);padding:0 4px}
+.gap.ok{color:#9dffb0;border-color:#9dffb0}
+.gap.no{color:#ffb0b8;border-color:#ffb0b8}
+#toast small{display:block;font:800 20px var(--b);color:#e8dcff;text-shadow:0 1px 6px #000}
+#toast small b{color:#9dffb0;font-size:1.15em}
+#toast{position:absolute;top:40%;left:0;right:0;text-align:center;font:800 34px var(--t);color:#fff3c8;text-shadow:0 0 14px rgba(255,180,90,1),0 3px 0 #8a3a4a;opacity:0;transform:scale(.7);transition:opacity .25s,transform .3s cubic-bezier(.3,1.6,.5,1);pointer-events:none}
+#toast.on{opacity:1;transform:none}
+#hint{position:absolute;bottom:calc(34px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-size:15px;color:#e8dcff;text-shadow:0 1px 4px #000;transition:opacity .8s}
+#hurt{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .45s;background:radial-gradient(circle,transparent 38%,rgba(255,40,80,.62))}
+#flash{position:absolute;inset:0;pointer-events:none;opacity:0}
+#boostFx{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(circle,transparent 55%,rgba(120,220,255,.3))}
+
+/* (v2) game feel: hearts that break and pop, the firefly combo, pop-up numbers, sparks that fly to the score */
+#hearts span{display:inline-block}
+#hearts .lose{animation:hLose .7s ease-out}
+@keyframes hLose{0%{transform:scale(1.7);color:#fff;text-shadow:0 0 22px #ff2050}25%{transform:scale(1.3) rotate(-18deg);color:#ff6a8a}50%{transform:scale(1.1) rotate(14deg)}75%{transform:scale(.9) rotate(-6deg)}100%{transform:none}}
+#hearts .gain{animation:hGain .55s cubic-bezier(.3,1.8,.5,1)}
+@keyframes hGain{0%{transform:scale(0)}60%{transform:scale(1.5);text-shadow:0 0 22px #ff6a9a}100%{transform:none}}
+#score{transform-origin:100% 50%}
+#combo{position:absolute;left:50%;bottom:calc(64px + env(safe-area-inset-bottom));transform:translateX(-50%);font:800 20px var(--t);color:#fff3c8;letter-spacing:.06em;white-space:nowrap;
+  text-shadow:0 0 10px rgba(255,200,90,.9),0 2px 0 #6a3a2a;opacity:0;transition:opacity .35s;pointer-events:none}
+#combo b{font-size:38px;color:#fff6a0;margin-right:4px}
+#combo.on{opacity:1}
+#combo.warm b{color:#ffd27a;text-shadow:0 0 14px rgba(255,170,60,1),0 2px 0 #8a3a2a}
+#combo.hot b{color:#ff9af0;text-shadow:0 0 18px rgba(255,110,220,1),0 2px 0 #6a2a6a}
+.pop{position:absolute;font:800 26px var(--t);color:#fff;white-space:nowrap;pointer-events:none;text-shadow:0 0 10px rgba(255,255,255,.8),0 2px 0 rgba(60,30,90,.9);will-change:transform,opacity}
+.pop small{font-size:.7em}
+.pop.gold{color:#ffe08a;text-shadow:0 0 12px rgba(255,190,80,1),0 2px 0 #8a3a2a}
+.pop.close{color:#bff4ff;font-size:28px;text-shadow:0 0 12px rgba(120,220,255,1),0 2px 0 #2a3a7a}
+.pop.heart{color:#ff8aa8;text-shadow:0 0 12px rgba(255,90,130,1),0 2px 0 #6a1a3a}
+.spk{position:absolute;width:14px;height:14px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#fff 0 25%,var(--c,#fff27a) 45%,transparent 72%);box-shadow:0 0 12px var(--c,#fff27a);will-change:transform}
+.modal:not([hidden])>*{animation:panelIn .32s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes panelIn{0%{transform:scale(.85);opacity:0}100%{transform:none;opacity:1}}
+#bigStars .star{display:inline-block}
+#bigStars .star.popin{animation:starPop .5s cubic-bezier(.3,1.9,.5,1)}
+@keyframes starPop{0%{transform:scale(0) rotate(-90deg)}60%{transform:scale(1.5) rotate(10deg);text-shadow:0 0 30px rgba(255,220,120,1)}100%{transform:none}}
+#rows div{animation:rowIn .35s ease-out both}
+#rows div:nth-child(2){animation-delay:.06s}#rows div:nth-child(3){animation-delay:.12s}#rows div:nth-child(4){animation-delay:.18s}#rows div:nth-child(5){animation-delay:.24s}#rows div:nth-child(n+6){animation-delay:.3s}
+@keyframes rowIn{0%{transform:translateX(-18px);opacity:0}100%{transform:none;opacity:1}}
+.go:active,.soft:active{filter:brightness(1.1)}
+
+/* pop-ups */
+.modal{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;text-align:center;background:radial-gradient(circle at 50% 40%,rgba(50,30,110,.75),rgba(8,6,30,.9))}
+.modal h2{margin:0;font:800 42px/1 var(--t);color:#fff3c8;text-shadow:0 0 14px rgba(255,190,90,.95),0 3px 0 #8a3a4a}
+.modal>p{font-size:16px;margin:8px 0 0;color:#e8dcff}
+#bigStars{font-size:52px;letter-spacing:6px;margin:10px 0 0}
+#rows{width:100%;max-width:330px;max-height:42vh;overflow:auto;margin:14px 0 20px;padding:8px 16px}
+#rows div{display:flex;justify-content:space-between;padding:6px 0;font-size:16px;border-bottom:1px solid rgba(255,255,255,.12)}
+#rows div:last-child{border:0}
+#rows .rev{display:block;font-size:13px;text-align:left;color:#e8dcff}
+#rows .rev b{color:#9dffb0}
+.btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+#fade{position:absolute;inset:0;background:#0a0820;opacity:0;pointer-events:none;transition:opacity .4s}
+#fade.on{opacity:1}
+#loading{position:absolute;inset:0;display:grid;place-items:center;font:800 30px var(--t);color:#fff3c8;background:#120c38;text-shadow:0 0 14px rgba(255,190,90,.9)}
+
+/* (2026-11-04) The play area now fills a wide screen instead of sitting in a phone-shaped strip, so the
+   menu and the end-of-level panels are held to a centred column — otherwise their rows stretch right
+   across a classroom screen and look empty. The HUD stays full width, where it belongs. */
+#menu, #result, #pause, #levelup { left: 50%; right: auto; width: min(100%, 560px); transform: translateX(-50%); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv"></canvas>
+  <div id="hurt"></div><div id="boostFx"></div><div id="flash"></div>
+
+  <section id="menu">
+    <div id="title">Lantern Sky<small>A NIGHT FLIGHT</small></div>
+    <div id="best" class="glass"><span class="star">★</span> <b id="allStars">0</b>/9</div>
+    <div class="nights" id="nights"></div>
+    <p id="nightSub"></p>
+    <button id="qbtn" class="glass"><span class="lv" id="qLv">A0</span><span class="t"><small>ENGLISH WORDS</small><b id="qTitle"></b></span><span class="arr">›</span></button>
+    <div class="crew" id="crew"></div>
+    <button id="play" class="go">FLY</button>
+  </section>
+
+  <section id="hud" hidden>
+    <div id="hearts"></div>
+    <div id="score">0</div>
+    <button id="pauseBtn" class="glass" aria-label="Pause">❚❚</button>
+    <div id="prog"><i id="progFill"></i><b id="progDot"></b></div>
+    <div id="qcard" class="glass away"><div class="k" id="qKick"></div><div class="s" id="qText"></div><div class="w" id="qWords"></div></div>
+    <div id="toast"></div>
+    <div id="combo"></div>
+    <p id="hint">Drag your finger to steer · fly through the right word</p>
+  </section>
+
+  <section id="pause" class="modal" hidden><h2>Paused</h2><p id="pauseInfo"></p><div class="btns" style="margin-top:22px"><button id="resume" class="go">GO ON</button></div><button id="quit" class="soft" style="margin-top:16px">Back to the menu</button><button id="calmBtn" class="soft" style="margin-top:12px;font-size:15px">Calm mode: off</button></section>
+  <section id="result" class="modal" hidden><h2 id="resTitle"></h2><p id="resSub"></p><div id="bigStars"></div><div id="rows" class="glass"></div><div class="btns"><button id="again" class="go">AGAIN</button><button id="toMenu" class="soft">Menu</button></div></section>
+  <div id="fade"></div>
+  <div id="loading">Lantern Sky</div>
+</div>
+<script src="packages.js?v=1"></script>
+<script src="/shared/pack-picker.js?v=8"></script>
+<script type="module" src="game.js?v=2"></script>
+</body>
+</html>
